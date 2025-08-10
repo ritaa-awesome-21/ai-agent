@@ -1,6 +1,6 @@
 /* src/App.css */
 
-/* General Body and Container Styles */
+/* General Body and Container Styles for Dark Theme */
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -10,10 +10,10 @@ body {
 
 .main-container {
     min-height: 100vh;
-    background: linear-gradient(to bottom right, #F3E8FF, #DBEAFE);
+    background: #14141d;
     padding: 2rem 1rem;
-    font-family: sans-serif; /* You can change this to 'Inter' if you have it installed */
-    color: #374151;
+    font-family: sans-serif;
+    color: #f0e9f7;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -21,13 +21,13 @@ body {
 
 /* Main Card Container */
 .card {
-    background-color: #ffffff;
+    background-color: #191825;
     border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
     padding: 1.5rem 2.5rem;
     width: 100%;
-    max-width: 56rem; /* 4xl */
-    border: 1px solid #E5E7EB;
+    max-width: 56rem;
+    border: 1px solid #332d43;
 }
 
 /* Typography */
@@ -35,14 +35,14 @@ body {
     font-size: 2.25rem;
     font-weight: 800;
     text-align: center;
-    color: #6B46C1;
+    color: #9264f3;
     margin-bottom: 2rem;
 }
 
 .section-title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #1D4ED8;
+    color: #9264f3;
     margin-bottom: 1rem;
 }
 
@@ -50,26 +50,26 @@ body {
     display: block;
     font-size: 1rem;
     font-weight: 500;
-    color: #4B5563;
+    color: #f0e9f7;
     margin-bottom: 0.5rem;
 }
 
 .hint {
     font-size: 0.875rem;
-    color: #6B7280;
+    color: #f0e9f7;
     margin-top: 0.5rem;
 }
 
 .status-message {
     font-size: 0.875rem;
-    color: #4B5563;
+    color: #f0e9f7;
     margin-top: 0.5rem;
     text-align: center;
 }
 
 .success-message {
     font-size: 0.75rem;
-    color: #16A34A;
+    color: #9264f3;
     margin-top: 0.25rem;
 }
 
@@ -78,22 +78,15 @@ body {
     margin-bottom: 1.5rem;
     padding: 1rem;
     border-radius: 0.5rem;
-    border: 1px solid #D1D5DB;
+    border: 1px solid #332d43;
 }
 
-.api-key-section {
-    background-color: #F5F3FF;
-    border-color: #DDA6F5;
-}
-
-.upload-section {
-    background-color: #EFF6FF;
-    border-color: #93C5FD;
-}
-
-.question-section {
-    background-color: #F0FDF4;
-    border-color: #A7F3D0;
+.api-key-section,
+.upload-section,
+.question-section,
+.response-section {
+    background-color: #191825;
+    border-color: #332d43;
 }
 
 .grid {
@@ -114,17 +107,19 @@ body {
 .textarea-field {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #D1D5DB;
+    border: 1px solid #332d43;
     border-radius: 0.5rem;
     transition: all 0.2s ease-in-out;
+    background-color: #14141d;
+    color: #f0e9f7;
 }
 
 .input-field:focus,
 .textarea-field:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
-    border-color: #6B46C1;
-    box-shadow: 0 0 0 2px #C4B5FD;
+    border-color: #9264f3;
+    box-shadow: 0 0 0 2px #9264f3;
 }
 
 .textarea-field {
@@ -135,16 +130,16 @@ body {
     display: block;
     width: 100%;
     font-size: 0.875rem;
-    color: #6B7280;
+    color: #f0e9f7;
 }
 
 .file-input::-webkit-file-upload-button {
     margin-right: 1rem;
     padding: 0.5rem 1rem;
     border: 0;
-    border-radius: 9999px; /* full rounded */
-    color: #1D4ED8;
-    background-color: #DBEAFE;
+    border-radius: 9999px;
+    color: #f0e9f7;
+    background-color: #9264f3;
     font-weight: 600;
     font-size: 0.875rem;
     cursor: pointer;
@@ -152,7 +147,7 @@ body {
 }
 
 .file-input::-webkit-file-upload-button:hover {
-    background-color: #BFDBFE;
+    background-color: #b187f5;
 }
 
 /* Buttons */
@@ -160,32 +155,20 @@ body {
 .button-secondary {
     width: 100%;
     padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 9999px; /* This makes the buttons fully rounded */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease-in-out;
     font-weight: 600;
     font-size: 1.125rem;
     cursor: pointer;
+    color: #f0e9f7;
+    border: none;
+    background-image: linear-gradient(to right, #9264f3, #c359d9);
 }
 
-.button-primary {
-    margin-top: 1rem;
-    background-color: #1D4ED8;
-    color: #ffffff;
-}
-
-.button-primary:hover:not(:disabled) {
-    background-color: #1E40AF;
-}
-
-.button-secondary {
-    margin-top: 1rem;
-    background-color: #10B981;
-    color: #ffffff;
-}
-
+.button-primary:hover:not(:disabled),
 .button-secondary:hover:not(:disabled) {
-    background-color: #059669;
+    background-image: linear-gradient(to right, #b187f5, #d875ee);
 }
 
 .button-primary:disabled,
@@ -197,15 +180,15 @@ body {
 /* Response and Error */
 .response-section {
     padding: 1rem;
-    background-color: #F9FAFB;
+    background-color: #191825;
     border-radius: 0.5rem;
-    border-color: #E5E7EB;
+    border-color: #332d43;
 }
 
 .error-alert {
-    background-color: #FEE2E2;
-    border: 1px solid #F87171;
-    color: #B91C1C;
+    background-color: #3f1a1a;
+    border: 1px solid #8e2b2b;
+    color: #f0e9f7;
     padding: 0.75rem 1rem;
     border-radius: 0.25rem;
     margin-bottom: 1rem;
@@ -220,12 +203,12 @@ body {
 }
 
 .response-box {
-    min-height: 6.25rem; /* 100px */
-    background-color: #ffffff;
+    min-height: 6.25rem;
+    background-color: #14141d;
     padding: 1rem;
     border-radius: 0.5rem;
-    border: 1px solid #D1D5DB;
-    color: #374151;
+    border: 1px solid #332d43;
+    color: #f0e9f7;
     white-space: pre-wrap;
 }
 
@@ -233,21 +216,21 @@ body {
 .chart-container {
     margin-top: 1.5rem;
     padding: 1rem;
-    background-color: #ffffff;
+    background-color: #14141d;
     border-radius: 0.5rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid #D1D5DB;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    border: 1px solid #332d43;
 }
 
 .chart-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #4B5563;
+    color: #f0e9f7;
     margin-bottom: 0.75rem;
 }
 
 .chart-canvas-wrapper {
     position: relative;
-    height: 16rem; /* 256px */
+    height: 16rem;
     width: 100%;
 }
