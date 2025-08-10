@@ -1,38 +1,253 @@
-.App {
-  text-align: center;
+/* src/App.css */
+
+/* General Body and Container Styles */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.main-container {
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, #F3E8FF, #DBEAFE);
+    padding: 2rem 1rem;
+    font-family: sans-serif; /* You can change this to 'Inter' if you have it installed */
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Main Card Container */
+.card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 1.5rem 2.5rem;
+    width: 100%;
+    max-width: 56rem; /* 4xl */
+    border: 1px solid #E5E7EB;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* Typography */
+.main-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    text-align: center;
+    color: #6B46C1;
+    margin-bottom: 2rem;
 }
 
-.App-link {
-  color: #61dafb;
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1D4ED8;
+    margin-bottom: 1rem;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #4B5563;
+    margin-bottom: 0.5rem;
+}
+
+.hint {
+    font-size: 0.875rem;
+    color: #6B7280;
+    margin-top: 0.5rem;
+}
+
+.status-message {
+    font-size: 0.875rem;
+    color: #4B5563;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.success-message {
+    font-size: 0.75rem;
+    color: #16A34A;
+    margin-top: 0.25rem;
+}
+
+/* Sections & Layouts */
+.section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #D1D5DB;
+}
+
+.api-key-section {
+    background-color: #F5F3FF;
+    border-color: #DDA6F5;
+}
+
+.upload-section {
+    background-color: #EFF6FF;
+    border-color: #93C5FD;
+}
+
+.question-section {
+    background-color: #F0FDF4;
+    border-color: #A7F3D0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Form Elements */
+.input-field,
+.textarea-field {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.input-field:focus,
+.textarea-field:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    border-color: #6B46C1;
+    box-shadow: 0 0 0 2px #C4B5FD;
+}
+
+.textarea-field {
+    resize: vertical;
+}
+
+.file-input {
+    display: block;
+    width: 100%;
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.file-input::-webkit-file-upload-button {
+    margin-right: 1rem;
+    padding: 0.5rem 1rem;
+    border: 0;
+    border-radius: 9999px; /* full rounded */
+    color: #1D4ED8;
+    background-color: #DBEAFE;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.file-input::-webkit-file-upload-button:hover {
+    background-color: #BFDBFE;
+}
+
+/* Buttons */
+.button-primary,
+.button-secondary {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease-in-out;
+    font-weight: 600;
+    font-size: 1.125rem;
+    cursor: pointer;
+}
+
+.button-primary {
+    margin-top: 1rem;
+    background-color: #1D4ED8;
+    color: #ffffff;
+}
+
+.button-primary:hover:not(:disabled) {
+    background-color: #1E40AF;
+}
+
+.button-secondary {
+    margin-top: 1rem;
+    background-color: #10B981;
+    color: #ffffff;
+}
+
+.button-secondary:hover:not(:disabled) {
+    background-color: #059669;
+}
+
+.button-primary:disabled,
+.button-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Response and Error */
+.response-section {
+    padding: 1rem;
+    background-color: #F9FAFB;
+    border-radius: 0.5rem;
+    border-color: #E5E7EB;
+}
+
+.error-alert {
+    background-color: #FEE2E2;
+    border: 1px solid #F87171;
+    color: #B91C1C;
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.bold-text {
+    font-weight: bold;
+}
+
+.error-message {
+    margin-left: 0.5rem;
+}
+
+.response-box {
+    min-height: 6.25rem; /* 100px */
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #D1D5DB;
+    color: #374151;
+    white-space: pre-wrap;
+}
+
+/* Chart */
+.chart-container {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid #D1D5DB;
+}
+
+.chart-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4B5563;
+    margin-bottom: 0.75rem;
+}
+
+.chart-canvas-wrapper {
+    position: relative;
+    height: 16rem; /* 256px */
+    width: 100%;
 }
