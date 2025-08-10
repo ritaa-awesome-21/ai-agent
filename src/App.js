@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import initSqlJs from 'sql.js';
 import Papa from 'papaparse';
 import Chart from 'chart.js/auto';
+import './App.css'; // Import the new CSS file
 
 // Define the expected schema for the tables based on your CSVs
 const TABLE_SCHEMAS = {
@@ -30,7 +31,7 @@ const TABLE_SCHEMAS = {
         CREATE TABLE IF NOT EXISTS product_eligibility (
             eligibility_datetime_utc TEXT,
             item_id TEXT,
-            eligibility BOOLEAN, -- Will be stored as 0 or 1 in SQLite
+            eligibility BOOLEAN,
             message TEXT,
             PRIMARY KEY (eligibility_datetime_utc, item_id)
         );
@@ -40,7 +41,7 @@ const TABLE_SCHEMAS = {
 // Helper function to simulate typing effect
 const typeText = (text, setter, delay = 20) => {
     let i = 0;
-    setter(''); // Clear previous text
+    setter('');
     const interval = setInterval(() => {
         if (i < text.length) {
             setter(prev => prev + text.charAt(i));
@@ -65,8 +66,8 @@ export default function App() {
     const [isDatabaseReady, setIsDatabaseReady] = useState(false);
     const [chartData, setChartData] = useState(null);
     const [chartType, setChartType] = useState(null);
-    const chartRef = useRef(null); // Ref for the Chart.js instance
-    const chartCanvasRef = useRef(null); // Ref for the canvas element
+    const chartRef = useRef(null);
+    const chartCanvasRef = useRef(null);
 
     // Initialize SQL.js database when component mounts
     useEffect(() => {
@@ -84,7 +85,7 @@ export default function App() {
             }
         };
         initDB();
-    }, []); // Empty dependency array means this runs once on mount
+    }, []);
 
     // Cleanup database on unmount
     useEffect(() => {
@@ -93,12 +94,12 @@ export default function App() {
                 db.close();
             }
         };
-    }, [db]); // Runs when 'db' changes (e.g., on unmount or re-initialization)
+    }, [db]);
 
     // Render chart when chartData changes
     useEffect(() => {
         if (chartRef.current) {
-            chartRef.current.destroy(); // Destroy existing chart instance to prevent duplicates
+            chartRef.current.destroy();
         }
 
         if (chartData && chartType && chartCanvasRef.current) {
@@ -121,7 +122,7 @@ export default function App() {
                 },
             });
         }
-    }, [chartData, chartType]); // Reruns when chart data or type changes
+    }, [chartData, chartType]);
 
     const handleFileUpload = (event, setter) => {
         const file = event.target.files[0];
@@ -129,7 +130,7 @@ export default function App() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 setter(e.target.result);
-                setError(''); // Clear any previous errors on new file upload
+                setError('');
             };
             reader.onerror = () => {
                 setError('Failed to read file.');
@@ -149,7 +150,7 @@ export default function App() {
         }
 
         setIsLoading(true);
-        setError(''); // Clear previous errors
+        setError('');
         setDbStatus('Loading data into database...');
 
         try {
@@ -158,12 +159,11 @@ export default function App() {
                 db.exec(TABLE_SCHEMAS[tableName]);
             }
 
-            // Parse and insert data function
             const parseAndInsert = (csvContent, tableName) => {
                 return new Promise((resolve, reject) => {
                     Papa.parse(csvContent, {
-                        header: true, // Treat the first row as column headers
-                        skipEmptyLines: true, // Ignore any blank rows in the CSV
+                        header: true,
+                        skipEmptyLines: true,
                         complete: (results) => {
                             if (results.errors.length) {
                                 reject(new Error(`CSV parsing error for ${tableName}: ${results.errors[0].message}`));
@@ -176,61 +176,53 @@ export default function App() {
                                 return;
                             }
 
-                            // Dynamically get columns from the parsed data to form SQL INSERT
                             const columns = Object.keys(data[0]).map(col => `"${col}"`).join(', ');
                             const placeholders = Object.keys(data[0]).map(() => '?').join(', ');
 
-                            // Begin a SQL transaction for faster and more reliable insertions
                             db.exec("BEGIN TRANSACTION;");
-                            let stmt = null; // Declare statement variable outside try-catch for wider scope
+                            let stmt = null;
 
                             try {
-                                // Prepare the insert statement once for efficiency
                                 stmt = db.prepare(`INSERT INTO ${tableName} (${columns}) VALUES (${placeholders});`);
-
                                 for (const row of data) {
-                                    // Map values for the prepared statement, handling type conversions
                                     const values = Object.values(row).map(value => {
-                                        // Convert 'TRUE'/'FALSE' strings to 1/0 for BOOLEAN
                                         if (typeof value === 'string') {
                                             if (value.toUpperCase() === 'TRUE') return 1;
                                             if (value.toUpperCase() === 'FALSE') return 0;
-                                            if (value.trim() === '') return null; // Convert empty strings to NULL
+                                            if (value.trim() === '') return null;
                                         }
-                                        // Convert to float if it's a valid number and not an empty string
                                         if (value !== null && !isNaN(parseFloat(value)) && isFinite(value)) {
                                             return parseFloat(value);
                                         }
-                                        return value; // Return as is for other types or nulls
+                                        return value;
                                     });
-                                    stmt.run(values); // Execute the prepared statement with current row's values
+                                    stmt.run(values);
                                 }
-                                db.exec("COMMIT;"); // Commit the transaction if all insertions are successful
-                                stmt.free(); // Free the prepared statement resources
-                                resolve(); // Resolve the promise indicating success
+                                db.exec("COMMIT;");
+                                stmt.free();
+                                resolve();
                             } catch (insertErr) {
-                                db.exec("ROLLBACK;"); // Rollback the transaction on any error
-                                if (stmt) stmt.free(); // Ensure statement is freed even on error
+                                db.exec("ROLLBACK;");
+                                if (stmt) stmt.free();
                                 reject(new Error(`Error inserting data into ${tableName}: ${insertErr.message}`));
                             }
                         },
-                        error: (err) => reject(err) // Handle PapaParse errors
+                        error: (err) => reject(err)
                     });
                 });
             };
 
-            // Await parsing and insertion for each CSV file
             await parseAndInsert(productAdSalesCsv, 'product_ad_sales_metrics');
             await parseAndInsert(productTotalSalesCsv, 'product_total_sales_metrics');
             await parseAndInsert(productEligibilityCsv, 'product_eligibility');
 
-            setIsDatabaseReady(true); // Set flag that database is ready for queries
+            setIsDatabaseReady(true);
             setDbStatus('All data loaded successfully!');
         } catch (err) {
             setError(`Error loading data: ${err.message}`);
             setDbStatus('Data loading failed.');
         } finally {
-            setIsLoading(false); // End loading state regardless of success or failure
+            setIsLoading(false);
         }
     };
 
@@ -253,31 +245,27 @@ export default function App() {
         }
 
         setIsLoading(true);
-        setAnswer(''); // Clear previous answer
-        setError(''); // Clear previous error
-        setChartData(null); // Clear previous chart
-        setChartType(null); // Clear previous chart type
+        setAnswer('');
+        setError('');
+        setChartData(null);
+        setChartType(null);
 
         try {
-            // Step 1: Get SQL query from LLM
             const schemaDefinition = Object.values(TABLE_SCHEMAS).join('\n');
-            const derivedMetricsContext = `
-            -- Key Derived Metrics & Calculations (from product_ad_sales_metrics):
-            --   Cost Per Click (CPC) = ad_spend / clicks (ensure clicks > 0 to avoid division by zero)
-            --   Return on Ad Spend (RoAS) = ad_sales / ad_spend (ensure ad_spend > 0 to avoid division by zero)
-
-            -- IMPORTANT: When asked for CPC or RoAS, calculate it directly in the SQL query.
-            -- Example for CPC: SELECT item_id, (ad_spend * 1.0 / clicks) AS cpc FROM product_ad_sales_metrics WHERE clicks > 0 ORDER BY cpc DESC LIMIT 1;
-            -- Example for RoAS: SELECT item_id, (ad_sales * 1.0 / ad_spend) AS roas FROM product_ad_sales_metrics WHERE ad_spend > 0 ORDER BY roas DESC LIMIT 1;
-            -- Use * 1.0 for division to ensure float results in SQLite.
-            `;
-
-            // The prompt now requests SQL within a code block, removing strict JSON output
-            const sqlPrompt = `Given the following SQLite database schema:\n\n\`\`\`sql\n${schemaDefinition}\n\`\`\`\n\n${derivedMetricsContext}\n\nConvert the following natural language question into a single SQL query. The SQL query should be provided within a markdown SQL code block (e.g., \`\`\`sql\nSELECT ...\n\`\`\`). Do NOT include any other text or explanations outside the SQL code block. If the question cannot be answered with the provided schema and derived metrics, provide \`\`\`sql\n-- N/A\n\`\`\`.\n\nQuestion: ${question}`;
+            const sqlPrompt = `Given the following SQLite database schema:\n\n\`\`\`sql\n${schemaDefinition}\n\`\`\`\n\nConvert the following natural language question into a single SQL query. Only return the SQL query in a JSON object like {"sql_query": "YOUR_SQL_QUERY_HERE"}, nothing else. Do not include any explanations or extra text outside the JSON. If the question cannot be answered with the provided schema, return '{"sql_query": "N/A"}'.\n\nQuestion: ${question}`;
 
             const payloadSql = {
                 contents: [{ role: "user", parts: [{ text: sqlPrompt }] }],
-                // Removed responseMimeType and responseSchema to allow plain text output from LLM for SQL
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "sql_query": { "type": "STRING" }
+                        },
+                        "propertyOrdering": ["sql_query"]
+                    }
+                }
             };
 
             const apiUrlSql = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
@@ -288,20 +276,16 @@ export default function App() {
             });
 
             const resultSql = await responseSql.json();
-            console.log("LLM SQL Raw Response:", resultSql); // For debugging
-
             let sqlQuery = '';
             if (resultSql.candidates && resultSql.candidates.length > 0 &&
                 resultSql.candidates[0].content && resultSql.candidates[0].content.parts &&
                 resultSql.candidates[0].content.parts.length > 0) {
-                const rawText = resultSql.candidates[0].content.parts[0].text;
-                // Extract SQL from markdown code block using regex
-                const sqlMatch = rawText.match(/```sql\n([\s\S]*?)\n```/);
-                if (sqlMatch && sqlMatch[1]) {
-                    sqlQuery = sqlMatch[1].trim();
-                } else {
-                    // If no SQL block, or empty, consider it unanswerable or an error
-                    setError('AI did not return a valid SQL code block. Raw response: ' + rawText.substring(0, 200) + '...');
+                const jsonText = resultSql.candidates[0].content.parts[0].text;
+                try {
+                    const parsedJson = JSON.parse(jsonText);
+                    sqlQuery = parsedJson.sql_query;
+                } catch (parseError) {
+                    setError(`AI returned invalid JSON for SQL: ${jsonText}. Error: ${parseError.message}`);
                     setIsLoading(false);
                     return;
                 }
@@ -311,20 +295,18 @@ export default function App() {
                 return;
             }
 
-            if (sqlQuery.toUpperCase().includes('-- N/A') || sqlQuery.toUpperCase().includes('N/A')) { // Check for N/A from AI
-                typeText("I'm sorry, I cannot answer that question with the available data or derived metrics.", setAnswer);
+            if (sqlQuery.toUpperCase().includes('N/A')) {
+                typeText("I'm sorry, I cannot answer that question with the available data.", setAnswer);
                 setIsLoading(false);
                 return;
             }
 
-            // Step 2: Execute SQL query on the in-browser database
             let queryResults = [];
             let columns = [];
             try {
                 const res = db.exec(sqlQuery);
                 if (res.length > 0) {
                     columns = res[0].columns;
-                    // Convert results to an array of objects for easier processing
                     queryResults = res[0].values.map(row => {
                         const obj = {};
                         columns.forEach((col, i) => {
@@ -343,8 +325,7 @@ export default function App() {
                 return;
             }
 
-            // Step 3: Get human-readable answer and visualization suggestion from LLM
-            const resultPrompt = `Given the following data from a database query:\n\n\`\`\`json\n${JSON.stringify(queryResults, null, 2)}\n\`\`\`\n\nAnd the original question was: "${question}"\n\nProvide a detailed and analytical answer. Explain the key findings, potential implications, and any relevant trends or comparisons you can infer from the data. Present the information clearly and comprehensively. For any numerical result, state the unit if applicable (e.g., dollars, units, percentage). Also, if a visualization is appropriate for this data, suggest the 'chart_type' (e.g., 'bar', 'line', 'pie', 'doughnut') and 'labels' (the column name for the x-axis or categories, e.g., 'item_id' or 'date') and 'values' (the column name for the y-axis or data, e.g., 'total_sales' or 'cpc_calculated') from the provided data. Prioritize charts for comparative or trend-based answers. If no visualization is suitable, set 'chart_type' to null. Ensure 'labels' and 'values' are valid column names from the provided JSON data.\n\nReturn the response in JSON format: \`\`\`json\n{\n  "answer": "...",\n  "visualization": {\n    "chart_type": "...",\n    "labels": "...",\n    "values": "..."\n  }\n}\n\`\`\``;
+            const resultPrompt = `Given the following data from a database query:\n\n\`\`\`json\n${JSON.stringify(queryResults, null, 2)}\n\`\`\`\n\nAnd the original question was: "${question}"\n\nProvide a concise, human-readable answer. Also, if a visualization is appropriate for this data, suggest the 'chart_type' (e.g., 'bar', 'line', 'pie', 'doughnut') and 'labels' (the column name for the x-axis or categories, e.g., 'item_id' or 'date') and 'values' (the column name for the y-axis or data, e.g., 'total_sales') from the provided data. If no visualization is suitable, set 'chart_type' to null. Ensure 'labels' and 'values' are valid column names from the provided JSON data.\n\nReturn the response in JSON format: \`\`\`json\n{\n  "answer": "...",\n  "visualization": {\n    "chart_type": "...",\n    "labels": "...",\n    "values": "..."\n  }\n}\n\`\`\``;
 
             const payloadResult = {
                 contents: [{ role: "user", parts: [{ text: resultPrompt }] }],
@@ -376,25 +357,19 @@ export default function App() {
             });
 
             const resultFinal = await responseResult.json();
-            console.log("LLM Final Response:", resultFinal); // For debugging
-
             if (resultFinal.candidates && resultFinal.candidates.length > 0 &&
                 resultFinal.candidates[0].content && resultFinal.candidates[0].content.parts &&
                 resultFinal.candidates[0].content.parts.length > 0) {
                 const jsonText = resultFinal.candidates[0].content.parts[0].text;
                 try {
                     const parsedFinal = JSON.parse(jsonText);
-                    typeText(parsedFinal.answer, setAnswer); // Display answer with typing effect
-
+                    typeText(parsedFinal.answer, setAnswer);
                     if (parsedFinal.visualization && parsedFinal.visualization.chart_type &&
                         parsedFinal.visualization.labels && parsedFinal.visualization.values) {
                         const chartLabelsCol = parsedFinal.visualization.labels;
                         const chartValuesCol = parsedFinal.visualization.values;
-
                         const labels = queryResults.map(row => row[chartLabelsCol]);
                         const values = queryResults.map(row => row[chartValuesCol]);
-
-                        // Ensure labels and values are valid and extracted correctly
                         if (labels.every(l => l !== undefined && l !== null) && values.every(v => v !== undefined && v !== null)) {
                             setChartType(parsedFinal.visualization.chart_type);
                             setChartData({
@@ -405,7 +380,7 @@ export default function App() {
                                     backgroundColor: [
                                         'rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)',
                                         'rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)', 'rgba(255, 159, 64, 0.6)',
-                                        'rgba(199, 199, 199, 0.6)', 'rgba(83, 102, 102, 0.6)', 'rgba(102, 204, 153, 0.6)' // More colors for charts
+                                        'rgba(199, 199, 199, 0.6)', 'rgba(83, 102, 102, 0.6)', 'rgba(102, 204, 153, 0.6)'
                                     ],
                                     borderColor: [
                                         'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
@@ -416,106 +391,101 @@ export default function App() {
                                 }],
                             });
                         } else {
-                            // Only set error if visualization was suggested but data is bad
-                            console.warn("LLM suggested visualization with invalid or missing columns after query. Chart not rendered.", { chartLabelsCol, chartValuesCol, queryResults });
+                            console.warn("AI suggested visualization with invalid or missing columns after query. Chart not rendered.");
                             setError("AI suggested a visualization, but the data columns for it were not found. Try a different question or examine your data.");
-                            setChartData(null); // Ensure no incomplete chart is rendered
+                            setChartData(null);
                         }
                     }
                 } catch (parseError) {
-                    setError(`AI returned an unreadable response. It might be generating too much text. Error: ${parseError.message}`);
+                    setError(`AI returned an unreadable response. Error: ${parseError.message}`);
                 }
             } else {
                 setError('Failed to get a response from AI. Please try again.');
             }
-
         } catch (err) {
-            setError(`An unexpected error occurred during AI processing: ${err.message}`);
-            console.error(err); // Log full error for debugging
+            setError(`An unexpected error occurred: ${err.message}`);
         } finally {
-            setIsLoading(false); // End loading state
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-100 to-blue-200 p-4 sm:p-8 font-inter text-gray-800 flex items-center justify-center">
-            <div className="bg-white rounded-xl shadow-2xl p-6 sm:p-10 w-full max-w-4xl border border-gray-200">
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-purple-800 mb-8">
-                    E-commerce Data AI Agent
-                </h1>
+        <div className="main-container">
+            <div className="card">
+                <h1 className="main-title">E-commerce Data AI Agent</h1>
 
                 {/* API Key Input */}
-                <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <label htmlFor="api-key" className="block text-lg font-medium text-purple-700 mb-2">
+                <div className="section api-key-section">
+                    <label htmlFor="api-key" className="label">
                         Gemini LLM API Key:
                     </label>
                     <input
                         type="password"
                         id="api-key"
-                        className="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
+                        className="input-field"
                         placeholder="Enter your Gemini API Key"
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                     />
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="hint">
                         Your API key is used to connect to the Gemini LLM. It is processed client-side.
                     </p>
                 </div>
 
                 {/* CSV Upload Section */}
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h2 className="text-xl font-semibold text-blue-700 mb-4">Upload Datasets (.csv)</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="section upload-section">
+                    <h2 className="section-title">Upload Datasets (.csv)</h2>
+                    <div className="grid">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Product Ad Sales:</label>
+                            <label className="label">Product Ad Sales:</label>
                             <input
                                 type="file"
                                 accept=".csv"
                                 onChange={(e) => handleFileUpload(e, setProductAdSalesCsv)}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition duration-200"
+                                className="file-input"
                             />
-                            {productAdSalesCsv && <p className="text-xs text-green-600 mt-1">Loaded!</p>}
+                            {productAdSalesCsv && <p className="success-message">Loaded!</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Product Total Sales:</label>
+                            <label className="label">Product Total Sales:</label>
                             <input
                                 type="file"
                                 accept=".csv"
                                 onChange={(e) => handleFileUpload(e, setProductTotalSalesCsv)}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition duration-200"
+                                className="file-input"
                             />
-                            {productTotalSalesCsv && <p className="text-xs text-green-600 mt-1">Loaded!</p>}
+                            {productTotalSalesCsv && <p className="success-message">Loaded!</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Product Eligibility:</label>
+                            <label className="label">Product Eligibility:</label>
                             <input
                                 type="file"
                                 accept=".csv"
                                 onChange={(e) => handleFileUpload(e, setProductEligibilityCsv)}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition duration-200"
+                                className="file-input"
                             />
-                            {productEligibilityCsv && <p className="text-xs text-green-600 mt-1">Loaded!</p>}
+                            {productEligibilityCsv && <p className="success-message">Loaded!</p>}
                         </div>
                     </div>
                     <button
                         onClick={loadDataIntoDB}
                         disabled={isLoading || !db || !productAdSalesCsv || !productTotalSalesCsv || !productEligibilityCsv}
-                        className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="button-primary"
                     >
                         {isLoading ? 'Loading Data...' : 'Load Data into Database'}
                     </button>
-                    <p className="text-sm text-gray-600 mt-2 text-center">{dbStatus}</p>
+                    <p className="status-message">{dbStatus}</p>
                 </div>
 
                 {/* Question Input */}
-                <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <label htmlFor="question" className="block text-lg font-medium text-green-700 mb-2">
+                <div className="section question-section">
+                    <label htmlFor="question" className="label">
                         Ask a question about your data:
                     </label>
                     <textarea
                         id="question"
                         rows="3"
-                        className="w-full p-3 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 resize-y"
+                        className="textarea-field"
                         placeholder="e.g., What is my total sales? Calculate the RoAS. Which product had the highest CPC?"
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}
@@ -524,30 +494,30 @@ export default function App() {
                     <button
                         onClick={askQuestion}
                         disabled={isLoading || !isDatabaseReady || !apiKey || !question.trim()}
-                        className="w-full mt-4 bg-green-600 text-white py-3 px-6 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="button-secondary"
                     >
                         {isLoading ? 'Thinking...' : 'Ask AI Agent'}
                     </button>
                 </div>
 
                 {/* Response Area */}
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-700 mb-4">AI Agent Response:</h2>
+                <div className="section response-section">
+                    <h2 className="section-title">AI Agent Response:</h2>
                     {error && (
-                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                            <strong className="font-bold">Error!</strong>
-                            <span className="block sm:inline ml-2">{error}</span>
+                        <div className="error-alert" role="alert">
+                            <strong className="bold-text">Error!</strong>
+                            <span className="error-message">{error}</span>
                         </div>
                     )}
-                    <div className="min-h-[100px] bg-white p-4 rounded-lg border border-gray-300 text-gray-800 whitespace-pre-wrap">
+                    <div className="response-box">
                         {answer || (isLoading ? "..." : "Your answer will appear here.")}
                     </div>
 
                     {/* Chart Display */}
                     {chartData && chartType && (
-                        <div className="mt-6 p-4 bg-white rounded-lg shadow-inner border border-gray-300">
-                            <h3 className="text-lg font-semibold text-gray-700 mb-3">Data Visualization:</h3>
-                            <div className="relative h-64 w-full"> {/* Fixed height for chart */}
+                        <div className="chart-container">
+                            <h3 className="chart-title">Data Visualization:</h3>
+                            <div className="chart-canvas-wrapper">
                                 <canvas ref={chartCanvasRef}></canvas>
                             </div>
                         </div>
